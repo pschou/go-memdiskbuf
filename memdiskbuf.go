@@ -159,7 +159,12 @@ func (b *Buffer) Read(p []byte) (n int, err error) {
 	return
 }
 
-// Return the length of the Buffer.
+// Return the length of the remaining used Buffer.
 func (b Buffer) Len() int {
+	return int(b.n - b.i)
+}
+
+// Return the length of the Buffer.
+func (b Buffer) Cap() int {
 	return int(b.n)
 }
