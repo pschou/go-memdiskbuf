@@ -95,6 +95,31 @@ func (b *Buffer) Reset() {
 	b.i, b.n, b.isReading = 0, 0, false
 }
 
+// ReadFrom reads from an io.Reader until io.EOF or error
+func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
+	for b.i < int64(len(b.st)) {
+		var c int
+		c, err = r.Read(b.st[b.i:])
+		b.i, n = b.i+int64(c), n+int64(c)
+		if err != nil {
+			if err == io.EOF {
+				err = nil
+			}
+			return
+		}
+	}
+
+	if b.fh == nil {
+		if b.fh, err = os.OpenFile(b.path, os.O_RDWR|os.O_CREATE, 0600); err != nil {
+			return
+		}
+	}
+	var c int64
+	c, err = io.Copy(b.fh, r)
+
+	return n + c, err
+}
+
 // Reads from the buffer.  The first read will switch the buffer from writing
 // mode to reading mode to prevent further writes.  One can use Reset() to
 // clear out the buffer and return to writing mode.
