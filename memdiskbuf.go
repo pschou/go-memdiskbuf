@@ -90,6 +90,7 @@ func (b *Buffer) Rewind() {
 func (b *Buffer) Reset() {
 	if b.fh != nil {
 		b.fh.Close()
+		b.fh = nil
 		os.Remove(b.path)
 	}
 	b.i, b.n, b.isReading = 0, 0, false
