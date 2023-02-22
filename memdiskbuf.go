@@ -93,9 +93,10 @@ func (b *Buffer) Reset() {
 		b.fh = nil
 		os.Remove(b.path)
 	}
-	b.i, b.n, b.isReading = 0, 0, false
+	b.i, b.n, b.ibuf, b.isReading = 0, 0, 0, false
 }
 
+/*
 // ReadFrom reads from an io.Reader until io.EOF or error
 func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 	for b.n < int64(len(b.st)) {
@@ -120,6 +121,7 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 	b.n, n = b.n+c, n+c
 	return
 }
+*/
 
 // Reads from the buffer.  The first read will switch the buffer from writing
 // mode to reading mode to prevent further writes.  One can use Reset() to
