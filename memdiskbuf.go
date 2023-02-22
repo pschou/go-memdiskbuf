@@ -1,4 +1,4 @@
-package memdiskbuffer
+package memdiskbuf
 
 import (
 	"errors"
@@ -25,6 +25,10 @@ type Buffer struct {
 // When calling a new path, provide a file name which could potentially be used
 // for a buffer once the minimum threshold has been met.  Any writes below the
 // threshold will not touch the disk, while any writes over the threshold will.
+//
+// Please note that DiskBuf should be a power of 2 multiplied by 4KB, so a good
+// value would be 16K.  This is because the sector size of a disk or NAND
+// memory is usually 4k.
 func NewBuffer(path string, MemBuf, DiskBuf int) *Buffer {
 	return &Buffer{path: path, st: make([]byte, MemBuf), buf: make([]byte, DiskBuf)}
 }

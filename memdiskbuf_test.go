@@ -1,4 +1,4 @@
-package memdiskbuffer_test
+package memdiskbuf_test
 
 import (
 	"fmt"
@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pschou/go-memdiskbuffer"
+	"github.com/pschou/go-memdiskbuf"
 )
 
 func ExampleNewBuffer() {
-	buf := memdiskbuffer.NewBuffer("/nowhere/unused_file", 10<<10, 8<<10)
+	buf := memdiskbuf.NewBuffer("/nowhere/unused_file", 10<<10, 8<<10)
 	{
 		str := "This is a test\n"
 		n, err := buf.Write([]byte(str))
@@ -28,7 +28,7 @@ func ExampleNewBuffer() {
 }
 
 func ExampleBuffer_Rewind() {
-	buf := memdiskbuffer.NewBuffer("/nowhere/unused_file", 10<<10, 8<<10)
+	buf := memdiskbuf.NewBuffer("/nowhere/unused_file", 10<<10, 8<<10)
 	{
 		str := "This is a test\n"
 		n, err := buf.Write([]byte(str))
@@ -55,7 +55,7 @@ func ExampleBuffer_Rewind() {
 }
 
 func ExampleBuffer_Write_twiceError() {
-	buf := memdiskbuffer.NewBuffer("/nowhere/unused_file", 10<<10, 8<<10)
+	buf := memdiskbuf.NewBuffer("/nowhere/unused_file", 10<<10, 8<<10)
 
 	str := "This is a test\n"
 	n, err := buf.Write([]byte(str))
@@ -71,7 +71,7 @@ func ExampleBuffer_Write_twiceError() {
 }
 
 func ExampleBuffer_Write_toDisk() {
-	buf := memdiskbuffer.NewBuffer("./data.tmp", 5, 10)
+	buf := memdiskbuf.NewBuffer("./data.tmp", 5, 10)
 	str := "This is a test of a long test data string as a dump to file.\n"
 	{
 		n, err := buf.Write([]byte(str))
@@ -95,7 +95,7 @@ func ExampleBuffer_Write_toDisk() {
 }
 
 func ExampleBuffer_Write_withReset() {
-	buf := memdiskbuffer.NewBuffer("./abe.tmp", 5, 10)
+	buf := memdiskbuf.NewBuffer("./abe.tmp", 5, 10)
 	str := `Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.
 
 Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of that field, as a final resting place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this.
