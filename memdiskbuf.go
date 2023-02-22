@@ -97,10 +97,10 @@ func (b *Buffer) Reset() {
 
 // ReadFrom reads from an io.Reader until io.EOF or error
 func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
-	for b.i < int64(len(b.st)) {
+	for b.n < int64(len(b.st)) {
 		var c int
 		c, err = r.Read(b.st[b.i:])
-		b.i, n = b.i+int64(c), n+int64(c)
+		b.n, n = b.n+int64(c), n+int64(c)
 		if err != nil {
 			if err == io.EOF {
 				err = nil
@@ -116,8 +116,8 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 	}
 	var c int64
 	c, err = io.Copy(b.fh, r)
-
-	return n + c, err
+	b.n, n = b.n+c, n+c
+	return
 }
 
 // Reads from the buffer.  The first read will switch the buffer from writing
