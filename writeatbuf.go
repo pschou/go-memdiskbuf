@@ -111,7 +111,6 @@ func (w *WriterAtBuf) Written() int64 {
 // the buffer.
 func (w *WriterAtBuf) Flush() (err error) {
 	var n int
-	condense(w.inbuf)
 	if w.inbuf[0].start == w.bufSt {
 		toWrite := w.inbuf[0].stop - w.inbuf[0].start
 		if n, err = w.fh.WriteAt(w.buf[:toWrite], w.inbuf[0].start); err != nil {
@@ -127,6 +126,20 @@ func (w *WriterAtBuf) Flush() (err error) {
 		}
 	}
 	return nil
+}
+
+// Flushable returns the size of a file if a Flush is called.
+func (w *WriterAtBuf) Flushable() (n int64, err error) {
+	if w.inbuf[0].start == w.bufSt {
+		n = w.bufSt + (w.inbuf[0].stop - w.inbuf[0].start)
+	}
+	for _, b := range w.inbuf {
+		if b.stop > w.written {
+			err = errors.New("Could not flush, missing one or more segments")
+			break
+		}
+	}
+	return
 }
 
 func add(set *[]startStop, start, stop int64) {
