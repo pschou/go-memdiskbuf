@@ -87,7 +87,7 @@ func (w *WriterAtBuf) WriteAt(p []byte, off int64) (n int, err error) {
 func (w *WriterAtBuf) shift() (err error) {
 	var n int
 	for chunkEnd := w.bufSt + w.block; w.inbuf[0].start == w.bufSt && w.inbuf[0].stop >= chunkEnd; chunkEnd = w.bufSt + w.block {
-		// Good times, go ahead and write our 4k
+		// Good times, go ahead and write our block
 		if n, err = w.fh.WriteAt(w.buf[:w.block], w.inbuf[0].start); err != nil {
 			return // Something bad happened
 		} else if n != int(w.block) {
@@ -106,9 +106,27 @@ func (w *WriterAtBuf) Written() int64 {
 	return w.written
 }
 
-// Flush what is in the buffer to disk, but don't advance the buffer to prevent
-// blocks getting out of sync.  An error will be returned if there are gaps in
-// the buffer.
+// FlushAll - flushes all the buffer to disk, gaps and all.  Doesn't advance
+// the buffer to prevent blocks getting out of sync.  An error will be returned
+// if there are gaps in the buffer.
+func (w *WriterAtBuf) FlushAll() (err error) {
+	var n int
+	for _, inbuf := range w.inbuf {
+		if inbuf.start >= w.bufSt {
+			toWrite := inbuf.stop - inbuf.start
+			if n, err = w.fh.WriteAt(w.buf[:toWrite], inbuf.start-w.bufSt); err != nil {
+				return // Something bad happened
+			} else if n != int(toWrite) {
+				return fmt.Errorf("Could not write %d, instead wrote %d", w.block, n)
+			}
+		}
+	}
+	return nil
+}
+
+// Flush - flushes what is in the buffer to disk, but don't advance the buffer
+// to prevent blocks getting out of sync.  An error will be returned if there
+// are gaps in the buffer.
 func (w *WriterAtBuf) Flush() (err error) {
 	var n int
 	if w.inbuf[0].start == w.bufSt {
@@ -145,8 +163,9 @@ func (w *WriterAtBuf) Flushable() (n int64, err error) {
 func add(set *[]startStop, start, stop int64) {
 	recPos := -1 // Mark any open position for assignment
 	seen := *set
+	defer condense(*set)
 	for i := range seen {
-		if seen[i].stop == 0 {
+		if seen[i].stop == 0 && recPos == -1 {
 			recPos = i
 		}
 		if seen[i].stop >= start && stop >= seen[i].start { // Append to an existing block
@@ -160,13 +179,14 @@ func add(set *[]startStop, start, stop int64) {
 	} else {
 		seen[recPos].start, seen[recPos].stop = start, stop
 	}
-	condense(*set)
 }
 
 func condense(seen []startStop) {
 	// Sort the values to ensure the smallest is at the front
 	sort.Slice(seen, func(i, j int) bool {
-		if seen[i].stop == 0 && seen[j].stop > 0 { // send zeros to the end
+		if seen[j].stop == 0 && seen[i].stop > 0 { // send zeros to the end
+			return true
+		} else if seen[i].stop == 0 && seen[j].stop > 0 { // send zeros to the end
 			return false
 		}
 		return seen[i].start < seen[j].start

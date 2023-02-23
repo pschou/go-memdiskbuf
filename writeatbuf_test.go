@@ -15,13 +15,13 @@ func ExampleNewWriterAtBufWithBlockSize() {
 	}
 	fh.Truncate(100)
 
-	wab := memdiskbuf.NewWriterAtBufWithBlockSize(fh, 30, 10)
+	wab := memdiskbuf.NewWriterAtBufWithBlockSize(fh, 40, 10)
 	wab.WriteAt([]byte("world,"), 6)
 	wab.WriteAt([]byte("hello "), 0)
-	wab.WriteAt([]byte("you be"), 18)
 	wab.WriteAt([]byte(" will "), 12)
+	wab.WriteAt([]byte("you be"), 18)
+	wab.WriteAt([]byte("iend?\n"), 30)
 	wab.WriteAt([]byte(" my fr"), 24)
-	wab.WriteAt([]byte("iend.\n"), 30)
 	err = wab.Flush()
 	if err != nil {
 		fmt.Println("err:", err)
@@ -35,6 +35,6 @@ func ExampleNewWriterAtBufWithBlockSize() {
 	fh.Close()
 	os.Remove("example_file")
 	// Output:
-	// "hello world, will you be my friend.\n"
+	// "hello world, will you be my friend?\n"
 	// written: 36
 }
