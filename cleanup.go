@@ -1,31 +1,23 @@
 package memdiskbuf
 
 import (
-	"log"
 	"os"
-	"os/signal"
 	"sync"
 )
 
-func init() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for sig := range c {
-			if Debug {
-				log.Println("Caught signal", sig)
-			}
-			for file, _ := range tmpFile {
-				os.Remove(file)
-			}
-		}
-	}()
+// Loop over any open temp files and clean them up, useful for a signal catcher
+// cleanup.
+func Cleanup() {
+	for file, fh := range tmpFile {
+		fh.Close()
+		os.Remove(file)
+	}
 }
 
 var (
 	// Toggle debug
 	Debug        = false
-	tmpFile      = make(map[string]struct{})
+	tmpFile      = make(map[string]*os.File)
 	tmpFileMutex sync.Mutex
 )
 
@@ -37,8 +29,8 @@ func unuse(f string) {
 }
 
 // Create an is-used mark
-func use(f string) {
+func use(f string, fh *os.File) {
 	tmpFileMutex.Lock()
 	defer tmpFileMutex.Unlock()
-	tmpFile[f] = struct{}{}
+	tmpFile[f] = fh
 }

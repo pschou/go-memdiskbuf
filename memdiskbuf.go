@@ -63,7 +63,7 @@ func (b *Buffer) Write(p []byte) (n int, err error) {
 func (b *Buffer) commit(ct int) (err error) {
 	if b.fh == nil {
 		if b.fh, err = os.OpenFile(b.path, os.O_RDWR|os.O_CREATE, 0600); err != nil {
-			use(b.path)
+			use(b.path, b.fh)
 			return
 		}
 	}
