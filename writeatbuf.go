@@ -16,6 +16,13 @@ import (
 // This WriterAtBuf
 // assumes the payload being written is immutable, meaning the bytes written
 // and then re-written will never change.
+//
+// An example of a UDP buffer for file transfers:
+//
+//   fh, _ := os.Create("my.dat")
+//   wab := NewWriterAtBuf(fh, 20<<10)  // A generous 20k data ordering buffer
+//   // Listen for UDP packets with offset positioning
+//   wab.WriteAt(UDPdata, offset)
 type WriterAtBuf struct {
 	fh             io.WriterAt
 	written, block int64
@@ -26,9 +33,10 @@ type WriterAtBuf struct {
 	StreamFunc  func([]byte)
 	streamFlush int
 
-	buf   []byte
-	bufSt int64
-	inbuf []startStop
+	buf     []byte
+	bufSt   int64
+	inbuf   []startStop
+	written []startStop
 }
 
 type startStop struct {
@@ -97,7 +105,8 @@ func (w *WriterAtBuf) WriteAt(p []byte, off int64) (n int, err error) {
 	}
 	if offEnd > bufEnd {
 		// Miss, trigger an error
-		return 0, fmt.Errorf("WriteAt outside buffer window %d-%d > [%d-%d]", off, offEnd, w.bufSt, bufEnd)
+		return 0, fmt.Errorf("WriteAt called outside buffer window %d-%d > [%d-%d], try increasing the buffer size.",
+			off, offEnd, w.bufSt, bufEnd)
 	}
 	// Buffer hit!
 	add(&w.inbuf, off, offEnd)
@@ -145,7 +154,7 @@ func (w *WriterAtBuf) FlushAll() (err error) {
 			if n, err = w.fh.WriteAt(w.buf[:toWrite], inbuf.start-w.bufSt); err != nil {
 				return // Something bad happened
 			} else if n != int(toWrite) {
-				return fmt.Errorf("Could not write %d, instead wrote %d", w.block, n)
+				return fmt.Errorf("Could not write %d, instead wrote %d, check the Block size used.", w.block, n)
 			}
 		}
 	}
@@ -169,7 +178,7 @@ func (w *WriterAtBuf) Flush() (err error) {
 		if n, err = w.fh.WriteAt(w.buf[:toWrite], w.inbuf[0].start); err != nil {
 			return // Something bad happened
 		} else if n != int(toWrite) {
-			return fmt.Errorf("Could not write %d, instead wrote %d", w.block, n)
+			return fmt.Errorf("Could not write %d, instead wrote %d, check the Block size used.", w.block, n)
 		}
 
 		// Update counters
