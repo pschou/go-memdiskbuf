@@ -33,10 +33,9 @@ type WriterAtBuf struct {
 	StreamFunc  func([]byte)
 	streamFlush int
 
-	buf     []byte
-	bufSt   int64
-	inbuf   []startStop
-	written []startStop
+	buf   []byte
+	bufSt int64
+	inbuf []startStop
 }
 
 type startStop struct {
