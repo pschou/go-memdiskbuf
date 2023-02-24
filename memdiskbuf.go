@@ -196,11 +196,11 @@ func (b *Buffer) ReadAt(p []byte, offset int64) (n int, err error) {
 }
 
 // Return the length of the remaining used Buffer.
-func (b Buffer) Len() int {
-	return int(b.n - b.i)
+func (b Buffer) Len() int64 {
+	return b.n - b.i
 }
 
 // Return the length of the Buffer.
-func (b Buffer) Cap() int {
-	return int(b.n)
+func (b Buffer) Cap() int64 {
+	return b.n
 }
