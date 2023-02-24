@@ -145,6 +145,11 @@ func (w *WriterAtBuf) Written() int64 {
 // FlushAll - flushes all the buffer to disk, gaps and all.  Doesn't advance
 // the buffer to prevent blocks getting out of sync.  An error will be returned
 // if there was an error writing to the target file.
+//
+// Note: FlushAll does not call the StreamFunc as Flush() is the proper way to
+// ensure all the segments are written correctly.  FlushAll is a sort of "give
+// up" function when an error in writing happens and one wants to get the
+// current state of a file, gaps and all.
 func (w *WriterAtBuf) FlushAll() (err error) {
 	var n int
 	for _, inbuf := range w.inbuf {
@@ -191,7 +196,8 @@ func (w *WriterAtBuf) Flush() (err error) {
 	return nil
 }
 
-// Flushable returns the size of a file if a Flush is called.
+// Flushable returns the flushable size of a file if a Flush is called.  An
+// error is returned should there be any gaps.
 func (w *WriterAtBuf) Flushable() (n int64, err error) {
 	if w.inbuf[0].start == w.bufSt {
 		n = w.bufSt + (w.inbuf[0].stop - w.inbuf[0].start)
