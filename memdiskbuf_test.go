@@ -117,6 +117,12 @@ But, in a larger sense, we can not dedicate—we can not consecrate—we can not
 		fmt.Println("Strings match!")
 	}
 
+	{ // Quick mini read of 11 bytes
+		short := make([]byte, 11)
+		buf.ReadAt(short, 15)
+		fmt.Println("short:", string(short))
+	}
+
 	out.Reset()
 	buf.Reset()
 
@@ -137,6 +143,7 @@ But, in a larger sense, we can not dedicate—we can not consecrate—we can not
 	// Wrote 1488 err: <nil>
 	// Copied 1488 err: <nil>
 	// Strings match!
+	// short: seven years
 	// Wrote 5 err: <nil>
 	// Copied 5 err: <nil>
 	// Strings match!
